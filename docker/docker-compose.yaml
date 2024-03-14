@@ -22,8 +22,9 @@ services:
       context: ./
       dockerfile: Dockerfile
     depends_on:
-      postgres-server:
-        condition: service_healthy
+      - postgres-server:
+        # condition: service_healthy is not required from 3-rd docker compose version
+        # because of this code is called by default on depends_on command
     ports:
       - "8082:8082"
 networks:
