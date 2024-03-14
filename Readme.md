@@ -49,7 +49,15 @@ services:
         dockerfile: postgres_server	
       ports:
         # port forwarding for host (it works for host PC)
-        - "5432:5432"				
+        - "5432:5432"
+      # Health checker to test reddiness (availability status for requests serving)
+      # state of PostgreSQL service
+      healthcheck:
+        test: ["CMD-SHELL", "pg_isready"]
+        interval: 10s
+        timeout: 60s
+        retries: 5
+        start_period: 10s			
     
     # Postgres admin in container
     pga:											       
