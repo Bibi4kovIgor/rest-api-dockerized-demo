@@ -2,22 +2,22 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.UserDto;
 import com.example.demo.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
+@RequestMapping("/api/v1/users")
 public class MainController {
 
-    @Autowired
-    UserService userService;
+    private final UserService userService;
 
+    public MainController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping(path = {"/", "{name}"})
     public String Greetings(@PathVariable(name = "name", required = false) String name){
@@ -25,21 +25,24 @@ public class MainController {
     }
 
     @PostMapping(path = "/add-user")
-    public void addUser() {
-        userService.saveUser(new UserDto(UUID.randomUUID().toString(), "Ihor", "some@email.com"));
+    public void addUser(@RequestBody UserDto user) {
+        userService.saveUser(new UserDto(UUID.randomUUID().toString(), user.name(), user.email()));
     }
 
     @GetMapping(path = "/get-all-users")
-    public String getAllUsers(){
-        return userService.getAllUsers().stream()
-                .map(String::valueOf)
-                .collect(Collectors.joining(", "));
+    public ResponseEntity<List<UserDto>> getAllUsers(){
+        List<UserDto> users = userService.getAllUsers();
+        return Objects.nonNull(users) && !users.isEmpty()
+                ? ResponseEntity.ok(users)
+                : ResponseEntity.notFound().build();
     }
 
     @GetMapping(path = "/get-user-by-name/{name}")
-    public String getUserByName(@PathVariable(name = "name") String name){
-        String user = String.valueOf(userService.getUserByName(name));
-        return user.isEmpty() ? "User was not found" : user;
+    public ResponseEntity<UserDto> getUserByName(@PathVariable(name = "name") String name){
+                UserDto user = userService.getUserByName(name);
+        return Objects.nonNull(user)
+                ? ResponseEntity.ok(user)
+                : ResponseEntity.notFound().build();
     }
 
 }
